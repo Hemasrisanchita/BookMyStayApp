@@ -1,117 +1,72 @@
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
- * UseCase4RoomSearch
+ * UseCase5BookingRequestQueue
  *
- * Demonstrates read-only room search functionality for the
- * Book My Stay application. The program retrieves room
- * availability from centralized inventory and displays
- * only available room types along with their details.
+ * Demonstrates handling booking requests using a Queue
+ * to ensure First-Come-First-Served processing.
  *
- * Inventory state is not modified during search operations.
+ * Booking requests are collected and stored in arrival order.
+ * No room allocation or inventory updates occur in this stage.
  *
  * @author Developer
- * @version 4.0
+ * @version 5.0
  */
 
-/* Abstract Room Class */
-abstract class Room {
+/* Reservation Class */
+class Reservation {
 
-    protected String type;
-    protected int beds;
-    protected double price;
+    private String guestName;
+    private String roomType;
 
-    public Room(String type, int beds, double price) {
-        this.type = type;
-        this.beds = beds;
-        this.price = price;
+    public Reservation(String guestName, String roomType) {
+        this.guestName = guestName;
+        this.roomType = roomType;
     }
 
-    public void displayDetails() {
-        System.out.println("Room Type : " + type);
-        System.out.println("Beds      : " + beds);
-        System.out.println("Price     : $" + price);
+    public String getGuestName() {
+        return guestName;
     }
-}
 
-/* Concrete Room Classes */
+    public String getRoomType() {
+        return roomType;
+    }
 
-class SingleRoom extends Room {
-    public SingleRoom() {
-        super("Single Room", 1, 100.0);
+    public void displayReservation() {
+        System.out.println("Guest Name : " + guestName);
+        System.out.println("Room Type  : " + roomType);
     }
 }
 
-class DoubleRoom extends Room {
-    public DoubleRoom() {
-        super("Double Room", 2, 180.0);
-    }
-}
+/* Booking Request Queue */
+class BookingRequestQueue {
 
-class SuiteRoom extends Room {
-    public SuiteRoom() {
-        super("Suite Room", 3, 350.0);
-    }
-}
+    private Queue<Reservation> requestQueue;
 
-/* Centralized Inventory */
-class RoomInventory {
-
-    private HashMap<String, Integer> inventory;
-
-    public RoomInventory() {
-        inventory = new HashMap<>();
-        inventory.put("Single Room", 5);
-        inventory.put("Double Room", 0); // unavailable example
-        inventory.put("Suite Room", 2);
+    public BookingRequestQueue() {
+        requestQueue = new LinkedList<>();
     }
 
-    public int getAvailability(String roomType) {
-        return inventory.getOrDefault(roomType, 0);
+    /* Add booking request to queue */
+    public void addRequest(Reservation reservation) {
+        requestQueue.add(reservation);
+        System.out.println("\nBooking request added for: " + reservation.getGuestName());
     }
 
-    public Map<String, Integer> getAllRooms() {
-        return inventory;
-    }
-}
+    /* Display all queued requests */
+    public void displayRequests() {
 
-/* Search Service */
-class RoomSearchService {
+        System.out.println("\n--- Booking Request Queue ---");
 
-    private RoomInventory inventory;
+        if (requestQueue.isEmpty()) {
+            System.out.println("No booking requests.");
+            return;
+        }
 
-    public RoomSearchService(RoomInventory inventory) {
-        this.inventory = inventory;
-    }
-
-    public void searchAvailableRooms() {
-
-        System.out.println("\n--- Available Rooms ---");
-
-        for (Map.Entry<String, Integer> entry : inventory.getAllRooms().entrySet()) {
-
-            String roomType = entry.getKey();
-            int available = entry.getValue();
-
-            /* Defensive Programming: show only available rooms */
-            if (available > 0) {
-
-                Room room = null;
-
-                if (roomType.equals("Single Room"))
-                    room = new SingleRoom();
-                else if (roomType.equals("Double Room"))
-                    room = new DoubleRoom();
-                else if (roomType.equals("Suite Room"))
-                    room = new SuiteRoom();
-
-                if (room != null) {
-                    room.displayDetails();
-                    System.out.println("Available : " + available);
-                    System.out.println();
-                }
-            }
+        for (Reservation r : requestQueue) {
+            r.displayReservation();
+            System.out.println();
         }
     }
 }
@@ -122,19 +77,25 @@ public class BookMyStayApp {
     public static void main(String[] args) {
 
         System.out.println("=================================");
-        System.out.println(" Book My Stay - Room Search");
-        System.out.println(" Version 4.0");
+        System.out.println(" Book My Stay - Booking Requests");
+        System.out.println(" Version 5.0");
         System.out.println("=================================");
 
-        /* Initialize Inventory */
-        RoomInventory inventory = new RoomInventory();
+        /* Initialize Booking Queue */
+        BookingRequestQueue bookingQueue = new BookingRequestQueue();
 
-        /* Initialize Search Service */
-        RoomSearchService searchService = new RoomSearchService(inventory);
+        /* Guests submit booking requests */
+        Reservation r1 = new Reservation("Alice", "Single Room");
+        Reservation r2 = new Reservation("Bob", "Suite Room");
+        Reservation r3 = new Reservation("Charlie", "Double Room");
 
-        /* Guest performs search */
-        searchService.searchAvailableRooms();
+        bookingQueue.addRequest(r1);
+        bookingQueue.addRequest(r2);
+        bookingQueue.addRequest(r3);
 
-        System.out.println("Search completed. System state unchanged.");
+        /* Display queued requests */
+        bookingQueue.displayRequests();
+
+        System.out.println("Requests stored in FIFO order. Awaiting allocation...");
     }
 }
